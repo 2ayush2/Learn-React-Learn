@@ -2,28 +2,28 @@ import "./App.css";
 import React, { useState, useEffect } from "react";
 import Header from "./Header";
 import AddContact from "./AddContact";
+import { v4 } from "uuid";
 import ContactList from "./ContactList";
 
 function App() {
-  const LOCAL_STORAGE_KEY = "contacts";
-  const [contacts, setContact] = useState(() => {
-    const storeContact = localStorage.getItem(LOCAL_STORAGE_KEY);
-    return storeContact ? JSON.parse(storeContact) : [];
-  });
+  const [contacts, setContact] = useState([]);
   const contactHandler = (contact) => {
-    setContact([...contacts, contact]);
-    console.log(contact);
+    setContact([...contacts, { id: v4(), ...contacts }]);
+  };
+  const removeHandler = (id) => {
+    const newContact = contacts.filter((contact) => {
+      return contact.id !== id;
+    });
+    setContact(newContact);
   };
 
-  // useEffect(() => {
-  //   const con = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
-  //   if (con) {
-  //     setContact(con);
-  //   }
-  // }, []);
-
   useEffect(() => {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(contacts));
+    const contacts = JSON.parse(localStorage.getItem("contacts"));
+    console.log("contacts:", contacts);
+    if (contacts) setContact(contacts);
+  }, []);
+  useEffect(() => {
+    localStorage.setItem("contacts", JSON.stringify(contacts));
   }, [contacts]);
   return (
     <div className="ui container">
@@ -32,7 +32,7 @@ function App() {
       <br />
       <AddContact contactHandler={contactHandler} />
       <br />
-      <ContactList contacts={contacts} />
+      <ContactList contacts={contacts} getContact={removeHandler} />
     </div>
   );
 }
