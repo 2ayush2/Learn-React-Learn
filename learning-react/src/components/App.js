@@ -1,15 +1,22 @@
 import "./App.css";
 import React, { useState, useEffect } from "react";
 import Header from "./Header";
+import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import AddContact from "./AddContact";
 import { v4 } from "uuid";
 import ContactList from "./ContactList";
+import ContactDetails from "./ContactDetails";
 
 function App() {
-  const [contacts, setContact] = useState([]);
+  const [contacts, setContact] = useState(() => {
+    const contactsData = JSON.parse(localStorage.getItem("contacts"));
+    return contactsData || [];
+  });
+
   const contactHandler = (contact) => {
-    setContact([...contacts, { id: v4(), ...contacts }]);
+    setContact([...contacts, { id: v4(), ...contact }]);
   };
+
   const removeHandler = (id) => {
     const newContact = contacts.filter((contact) => {
       return contact.id !== id;
@@ -18,22 +25,38 @@ function App() {
   };
 
   useEffect(() => {
-    const contacts = JSON.parse(localStorage.getItem("contacts"));
-    console.log("contacts:", contacts);
-    if (contacts) setContact(contacts);
-  }, []);
-  useEffect(() => {
     localStorage.setItem("contacts", JSON.stringify(contacts));
   }, [contacts]);
+
   return (
-    <div className="ui container">
-      <Header />
-      <br />
-      <br />
-      <AddContact contactHandler={contactHandler} />
-      <br />
-      <ContactList contacts={contacts} getContact={removeHandler} />
-    </div>
+    <Router>
+      <div className="ui container">
+        <Switch>
+          <Route path="/contact" />
+          <Route
+            path="/add-contact"
+            render={(props) => (
+              <AddContact {...props} contactHandler={contactHandler} />
+            )}
+          />
+          <Route
+            path="/contact-list"
+            render={(props) => (
+              <ContactList
+                {...props}
+                contacts={contacts}
+                getContact={removeHandler}
+              />
+            )}
+          />
+          <Route path="/contact-details/:id" component={ContactDetails} />
+        </Switch>
+
+        <Header />
+
+        <br />
+      </div>
+    </Router>
   );
 }
 
